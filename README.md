@@ -81,9 +81,6 @@ $$\Sigma = \sigma^2
 
 #### References: 
 
-- Arnab Maity, Longitudinal Data Analysis: Linear Mixed Effects
-Models, NCSU Department of Statistics, 2020.
-<br>
+- Arnab Maity, Longitudinal Data Analysis: Linear Mixed Effects Models, NCSU Department of Statistics, 2020.
 - Peter D. Hoff, Lecture Notes on Hierarchical Modeling, 2019.
-<br>
 - This analysis uses data from China Health and Nutrition Survey (CHNS). We thank the National Institute of Nutrition and Food Safety, China Center for Disease Control and Prevention, Carolina Population Center, the University of North Carolina at Chapel Hill, the NIH (R01-HD30880, DK056350, and R01-HD38700) and the Fogarty International Center, NIH for financial support for the CHNS data collection and analysis files from 1989 to 2006 and both parties plus the China-Japan Friendship Hospital, Ministry of Health for support for CHNS 2009 and future surveys.
