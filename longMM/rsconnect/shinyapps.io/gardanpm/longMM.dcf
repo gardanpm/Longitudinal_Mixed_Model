@@ -1,0 +1,13 @@
+name: longMM
+title: longMM
+username:
+account: gardanpm
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4022674
+bundleId: 4512294
+url: https://gardanpm.shinyapps.io/longMM/
+when: 1619230353.6258
+lastSyncTime: 1619230353.62583
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,120 @@
+---
+title: ""
+theme: lumen
+output:
+      html_document
+---
+
+```{r setup, include=FALSE}
+library(nlme)
+library(tidyverse)
+load('models2.Rdata')
+knitr::opts_chunk$set()
+```
+
+
+### Autoregressive specification of the error variance: \
+
+The models that we have seen so far assumed independent errors within groups. i.e, the variance-covariance matrix $\Sigma$ or sometimes called $R_i$ of the errors of these models is:
+
+$$\Sigma = \sigma^2I=
+\begin{bmatrix}
+  1 & 0 & 0 & ... & 0 \\
+  0 & 1 & 0 & ... & 0 \\
+  . & . & . &     & .\\
+  . & . & . &     & .\\
+  . & . & . &     & .\\
+  0 & 0 & 0 & ... & 1
+\end{bmatrix}$$
+However, the covariance might be non-zero. There could for example temporal dependence within groups. A way to express this type of dependence is the auto-regressive
+correlation model. It uses a single correlation parameter $\rho$ ($-1 < \rho < 1$)and assumes that the
+time separation between measurements determines their correlation. In our model, it would be:
+$$corr(Y_{i,k,j}, Y_{i,k,j'}) = ρ^{|tj−tj'|}$$
+For example, if $\rho = 0.8$ and observations are 10 years
+apart, their correlation will be $0.8^{10} = 0.107$. In an auto-regressive model the
+correlation will decay as the distance betweeen observations increases. $\rho$ is estimated from the data. The `lmer` function that we had been using cannot handle such specification and so we use `lme` form the `nlme` package.\
+
+This new $\Sigma$ matrix can be expressed as the following, for m time points:
+$$\Sigma = \sigma^2
+\begin{bmatrix}
+  1 & \rho & \rho^2 & ... & \rho^{m-1} \\
+  \rho & 1 & \rho & ... & \rho^{m-2} \\
+  . & . & . &     & .\\
+  . & . & . &     & .\\
+  . & . & . &     & .\\
+  \rho^{m-1} & \rho^{m-2} & ... & \rho & 1
+\end{bmatrix}$$
+
+<br>
+
+#### Example on our Simple Model \
+
+We will try to fit this specification to our simple model.\
+
+```{r}
+fit.cor <- lme(fixed = thousands_croot ~ cyear, data = sashhinc,
+               random = ~1|hhid,
+               correlation = corAR1(form = ~ cyear|hhid),
+               method = "ML")
+summary(fit.cor)
+
+```
+\
+The correlation parameter is estimated to be 0 (Phi1). Therefore, we get a diagonal matrix or diagonal $R_i$ with variance $\sigma^2 = 0.74$.\
+
+```{r}
+R_i <- getVarCov(fit.cor,type="conditional",individual=1)   # R_i
+R_i
+```
+
+<br>
+
+#### An other Example! \
+
+The following short example was posted by Asher Strauss [here](https://r-sig-mixed-models.r-project.narkive.com/9ks5NVkW/r-sig-me-estimating-ar1-parameters-of-level-one-error-using-lme).\
+\
+We use the `Glucose` dataset from `lme`. We want to predict glucose levels using time since last meal of the day as fixed effect and subject as random effect with a random slope for time. We filter for meals taken at 10 AM. \
+
+```{r}
+data(Glucose)
+
+fGlucose <- Glucose %>% filter(Meal=="10am")
+
+fit.gluc <- lme(fixed=conc~Time, data=fGlucose,
+                random=~1+Time|Subject,
+                method="REML",
+                na.action="na.omit",
+                correlation = corAR1(form=~1+Time|Subject))
+
+summary(fit.gluc)
+```
+\
+We see here that there is indeed some time dependence in the errors (phi=0.43) and so we can visualize the conditional variance-covariance matrix $R_i$ where the covariance decays as we explained above.\
+
+```{r}
+R_i <- getVarCov(fit.gluc,type="conditional",individual=1)   # R_i
+R_i
+```
+<br>
+
+#### Other Specifications \
+
+There are a lot of other ways to specify the correlation structure of the errors with the `nlme` package. For example, `corCompSymm` assumes a compounded symmetric structure corresponding to a constant correlation. It means that the covariance in the error does not depend on time between two observations.\
+
+```{r}
+fit.cor2 <- lme(fixed = thousands_croot ~ cyear, data = sashhinc,
+               random = ~1|hhid,
+               correlation = corCompSymm(form = ~ cyear|hhid),
+               method = "ML")
+summary(fit.cor2)
+```
+
+```{r}
+R_i <- getVarCov(fit.cor2,type="conditional",individual=1)   # R_i
+R_i
+```
+\
+We see that the correlation is really small so it is probably fair to assume that the errors are actually independent in this data.\
+\
+More information on different specifications can be found [here](https://www.rdocumentation.org/packages/nlme/versions/3.1-152/topics/corClasses)
+

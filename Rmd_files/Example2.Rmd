@@ -1,0 +1,102 @@
+---
+title: ""
+theme: lumen
+output:
+      html_document: 
+        code_folding: hide
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lme4)
+library(patchwork)
+library(haven)
+library(lattice)
+load("models1.Rdata")
+knitr::opts_chunk$set()
+```
+<br>
+
+### Extension to Multivariate Analysis & Nested Random Effects \
+
+We can extend a simple longitudinal analysis by adding other fixed effects and interactions. We can also consider other random effects. For this study, we would like to know if household income evolution differed by rural/urban area over time. We would also like to know if there was heterogeneity across provinces overall and in the trend of household income over time.\
+\
+We first investigate a random intercept for provinces. Each individual household is only attached to one province in the data. Therefore, households can be said to be nested within provinces. \
+\
+Nested effects like this give us some kind of hierarchy in the model. It involves across-group heterogeneity at both levels of the hierarchy. We can use the same specification as in the introduction tab and add k to index this new level that we will call level 1 (provinces in our model) and $\lambda_k\times m_{i,k,j}$ where $m_{i,k,j}$ is the random effects vector with respect to level 1 and $\lambda_k$ is the random effects coefficients vector for $level1_k$.
+Assuming only a random intercept, $\lambda_k \sim N(0, \phi^2) \:\perp \!\!\! \perp \: \epsilon_{i,k,j}$.\
+
+```{r message=FALSE, warning=FALSE}
+fit.5 = lmer(thousands_croot ~ cyear + (1|hhid)+ (1|Prov_2), data = sashhinc)
+anova(fit.1, fit.5)
+```
+\
+There is evidence of heterogeneity across provinces.\
+\
+We then consider the area variable. Our question involves an interaction term between time and area as well as the main effect of rural vs. urban.\
+
+
+```{r message=FALSE, warning=FALSE}
+fit.6 = lmer(thousands_croot ~ cyear + area_urban +
+            (1|hhid)+ (1|Prov_2), data = sashhinc)
+fit.7 = lmer(thousands_croot ~ cyear*area_urban +
+            (1|hhid)+ (1|Prov_2), data = sashhinc)
+anova(fit.5, fit.6, fit.7)
+```
+\
+BIC tells us here that adding a fixed effect for the area is appropriate. However, the effect did not depend on time.\
+\
+We also want to investigate random slopes for provinces. We test for random slopes for years and area.\
+
+```{r message=FALSE, warning=FALSE}
+fit.8 = lmer(thousands_croot ~ cyear+area_urban +
+            (1|hhid) + (1+cyear|Prov_2), data = sashhinc,
+            control = lmerControl(optimizer ="Nelder_Mead"))
+fit.9 = lmer(thousands_croot ~ cyear+area_urban +
+            (1|hhid) + (1+area_urban|Prov_2), data = sashhinc,
+            control = lmerControl(optimizer ="Nelder_Mead"))
+fit.10 = lmer(thousands_croot ~ cyear+area_urban +
+            (1|hhid) + (1+cyear+area_urban|Prov_2), data = sashhinc,
+            control = lmerControl(optimizer ="Nelder_Mead"))
+
+anova(fit.6, fit.8, fit.9, fit.10)
+```
+\
+There also seem to be heterogeneity in the effects of years, area across provinces according to BIC.\
+\
+Our final model includes fixed effects of year and area as well as random slopes for households nested in provinces. The model also includes random slopes for year and area by provinces.\
+
+Again, we can look at diagnostics.\
+
+```{r}
+par(mfrow=c(1,2))
+plot(fitted(fit.10), resid(fit.10), xlab = 'fitted', ylab='residual', main='fitted vs. residual')
+abline(h=0)
+qqnorm(resid(fit.10))
+qqline(resid(fit.10))
+```
+\
+It does not look much better than for our first model.\
+
+```{r echo=FALSE}
+sum2 <- summary(fit.10)$coefficients
+knitr::kable(round(sum2,3), caption = "Summary of the fixed effects")
+```
+\
+A new surveyed household in 1989 from a rural area is predicted to have had an income per capita of $1.91^3=6.97$ thousands Yuans (2015).
+Everything else equal, after 10 years, household income per capita is redicted to have increased by $(10\times0.054)^3=0.16$ thousand Yuans (2015).
+Everything else equal, a household from an urban area is predicted to make $0.256^3=0.02$ thousand Yuans (2015) more than a household from a rural area.\
+\
+
+We can also visualize the random effects for provinces. We see that the Province of Heilongjiang is on average the one with the smallest income per capita while Guangxi, Shanghai and Jiangsu had the highest income per capita on average since 1989. The effect of year is hard to see on this graph but Guangxi seems to have had a negative trend over time while Shanghai, Jiangsu or Beijing are experiencing growth. Finally, the random slope for area shows that the richer an area, the smaller the effect of an urban area.\
+
+```{r}
+dotplot(ranef(fit.10,condVar=TRUE), par.strip.text=list(cex=.8), scales=list(cex=c(.8,.8), alternating=2), ylab="Province")[[2]]
+```
+<br>
+
+Of course, we have seen in both models that we have outliers in the data. Conducting sensitivity analysis to identify influential points, households or provinces would be required to complete this analysis. Also, looking at the diagnostics, a linear model might not be appropriate for this data. More flexible models such as a mixture model might fit the data better.\
+
+<br>
+The plot below compares the predictions from the simple model in green to the nested model in red for an individual household. Keep clicking on "Go!" to view different households. Only households with more than 5 observations are displayed
+<br>
