@@ -2,6 +2,11 @@
 
 Duke Sta 610, Hierarchical Modeling, Homework 4
 
+The app can be found here [https://gardanpm.shinyapps.io/longMM/](https://gardanpm.shinyapps.io/longMM/).\
+To see the code, click on the code box on the top right of the second tab and select "Show All Code".\
+\
+The repo for the app is in the longMM folder.
+
 ## Multilevel Modeling Insights
 
 Your assignment is to create a helpful tool that illustrates an important aspect of understanding and use of multilevel models. This tool could be an interesting visualization, a Shiny app, or just an extraordinarily clear example illustration/mini-lecture! This is very open-ended so be as creative as possible!
@@ -16,11 +21,6 @@ Your pdf report MUST also contain a link to your tool, if you have one. If you d
 ## My report:
 
 For this homework, I decided to illustrate how mixed effects models handle longitudinal data and also tried to touch on some of their capabilities. I built a Shiny app with three different tabs. The first tab introduces longitudinal data and explains how linear mixed model are more appropriate to model this type of data compre to linear models. The second tab goes over two example using the China Health and Nutrition Study (CHNS) Household Income dataset. The first example is quite simple and aims at illustrating how to conduct an analysis with repeated measure on subjects over time and the second example extends this analysis to a multivariate model with nested random effects. This tabs also allows to visualize predictions for individual households and to visually compare the two models. The third tab talks about the possibility of errors that are time dependent within subjects. It introduces the `nlme` package and the `lme` function. It goes over two examples assuming an AR1 correlation meaning that the errors covariance between two observations of the same subject decays when they are further appart in time. \
-
-The app can be found here [https://gardanpm.shinyapps.io/longMM/](https://gardanpm.shinyapps.io/longMM/).\
-To see the code, click on the code box on the top right of the second tab and select "Show All Code".\
-\
-The repo for the app is in the longMM folder.
 
 #### Longitudinal Data & Linear Mixed Models
 
